@@ -133,17 +133,18 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   animation: grain 1s steps(6) infinite;
 }
 
-/* Shared centred block for the intro and every room caption */
+/* Shared block for the intro and every room caption: the block sits in the
+   centre of the screen, its contents are left-aligned */
 .intro,
 .cap {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: min(760px, calc(100% - 2 * var(--gutter)));
+  width: min(640px, calc(100% - 2 * var(--gutter)));
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
+  align-items: flex-start;
+  text-align: left;
   text-shadow: 0 2px 24px rgba(8, 11, 20, 0.55);
 }
 
@@ -197,7 +198,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .cap-actions {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 14px;
   margin-top: 30px;
 }
@@ -206,7 +207,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .stats {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: flex-start;
   gap: clamp(20px, 4vw, 52px);
   margin-top: 36px;
   padding-top: 22px;
@@ -283,8 +284,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   text-transform: uppercase;
   color: var(--gold);
 }
-.cap-kicker::before,
-.cap-kicker::after { content: ""; width: 34px; height: 1px; background: currentColor; opacity: 0.7; }
+.cap-kicker::before { content: ""; width: 34px; height: 1px; background: currentColor; opacity: 0.7; }
 
 .cap-title {
   font-family: "Cormorant Garamond", serif;
@@ -403,7 +403,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   .stats { gap: 18px; margin-top: 26px; }
   .stats dd { font-size: 1.3rem; }
   .scroll-cue span { display: none; }
-  .cap-kicker::before, .cap-kicker::after { width: 20px; }
+  .cap-kicker::before { width: 20px; }
   .tour-loading { left: 50%; right: auto; top: 90px; bottom: auto; transform: translateX(-50%); }
 }
 
