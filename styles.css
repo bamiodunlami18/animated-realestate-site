@@ -113,15 +113,16 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   background: var(--ink);
 }
 
-/* Darkens the centre (where the copy sits) and the top (behind the nav) */
+/* Darkens the left and bottom (where the copy sits) and the top (behind the nav) */
 .shade {
   position: absolute;
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 70% 60% at 50% 55%, rgba(8, 11, 20, 0.62) 0%, rgba(8, 11, 20, 0.32) 55%, rgba(8, 11, 20, 0) 100%),
+    linear-gradient(90deg, rgba(8, 11, 20, 0.84) 0%, rgba(8, 11, 20, 0.5) 34%, rgba(8, 11, 20, 0) 62%),
+    linear-gradient(0deg, rgba(8, 11, 20, 0.8) 0%, rgba(8, 11, 20, 0) 34%),
     linear-gradient(180deg, rgba(8, 11, 20, 0.55) 0%, rgba(8, 11, 20, 0) 22%),
-    linear-gradient(0deg, rgba(8, 11, 20, 0.45) 0%, rgba(8, 11, 20, 0) 25%);
+    linear-gradient(270deg, rgba(8, 11, 20, 0.45) 0%, rgba(8, 11, 20, 0) 22%);
 }
 
 .grain {
@@ -133,14 +134,13 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   animation: grain 1s steps(6) infinite;
 }
 
-/* Shared block for the intro and every room caption: the block sits in the
-   centre of the screen, its contents are left-aligned */
+/* Shared block for the intro and every room caption: bottom-left of the screen */
 .intro,
 .cap {
   position: absolute;
-  left: 50%;
-  top: 50%;
-  width: min(640px, calc(100% - 2 * var(--gutter)));
+  left: var(--gutter);
+  bottom: clamp(96px, 14vh, 150px);
+  width: min(600px, calc(100% - 2 * var(--gutter)));
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -151,7 +151,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 /* ---------- Intro ---------- */
 .intro {
   z-index: 10;
-  transform: translate(-50%, calc(-50% + (1 - var(--ui, 1)) * -40px));
+  transform: translateY(calc((1 - var(--ui, 1)) * -40px));
   opacity: var(--ui, 1);
   filter: blur(calc((1 - var(--ui, 1)) * 6px));
 }
@@ -259,7 +259,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 /* ---------- Room captions ----------
    Each fades up, line by line, while the playhead is inside its room */
 .tour-captions { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
-.cap { transform: translate(-50%, -50%); visibility: hidden; transition: visibility 0s 0.8s; }
+.cap { visibility: hidden; transition: visibility 0s 0.8s; }
 .cap.is-on { visibility: visible; transition-delay: 0s; }
 
 .cap > * {
@@ -382,12 +382,9 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 }
 
 /* ---------- Responsive ---------- */
-@media (max-width: 1180px) {
-  .tour-rail { display: none; }
-}
-
 @media (max-width: 960px) {
   .nav-links { display: none; }
+  .tour-rail { display: none; }
 }
 
 @media (max-width: 640px) {
@@ -395,9 +392,11 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   .nav-cta { display: none; }
   .shade {
     background:
-      radial-gradient(ellipse 120% 60% at 50% 55%, rgba(8, 11, 20, 0.7) 0%, rgba(8, 11, 20, 0.4) 60%, rgba(8, 11, 20, 0.15) 100%),
+      linear-gradient(0deg, rgba(8, 11, 20, 0.95) 0%, rgba(8, 11, 20, 0.6) 50%, rgba(8, 11, 20, 0.1) 78%),
       linear-gradient(180deg, rgba(8, 11, 20, 0.55) 0%, rgba(8, 11, 20, 0) 22%);
   }
+  .cap { bottom: 64px; }
+  .intro { bottom: 88px; }
   .lede { font-size: 0.98rem; }
   .actions .btn, .cap-actions .btn { flex: 1 1 auto; padding: 13px 18px; }
   .stats { gap: 18px; margin-top: 26px; }

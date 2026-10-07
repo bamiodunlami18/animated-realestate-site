@@ -1,12 +1,12 @@
 # Lumière Residence — Scroll Video Tour
 
-A static, dependency-free landing page for a luxury property listing. The page opens on the tour video's first frame with the listing's intro centred over it; scrolling plays the video tour frame by frame.
+A static, dependency-free landing page for a luxury property listing. The page opens on the tour video's first frame with the listing's intro in the bottom-left corner; scrolling plays the video tour frame by frame.
 
 Run it with any static server (e.g. `npx serve .`) and open the printed address.
 
 ## Scroll: video tour
 
-Scrolling down plays the property tour video in step with the scroll: scroll down to move forward, up to go back, stop to pause on a frame. The intro copy lifts away on the video's opening street shot, then room captions (a centred block with left-aligned text, each with a short description and calls to action) and the room list on the right follow the playhead. Clicking a room jumps to it.
+Scrolling down plays the property tour video in step with the scroll: scroll down to move forward, up to go back, stop to pause on a frame. The intro copy lifts away on the video's opening street shot, then room captions (bottom-left, each with a short description and calls to action) and the room list on the right follow the playhead. Clicking a room jumps to it.
 
 - Videos: `assets/video/tour-1600.mp4` (desktop) and `tour-960.mp4` (phones), re-encoded with a keyframe every 10 frames and no audio so seeking is smooth. The page downloads the whole file before scrubbing.
 - Captions: the `.cap` blocks in `index.html`; `data-start` / `data-end` are seconds in the video.
