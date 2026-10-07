@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lumière Residence — Luxury Villa for Sale</title>
+  <meta name="description" content="Lumière Residence: a four-level contemporary villa with rooftop terrace, double-height glazing and private parking. Now for sale." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="#">LUMIÈRE<span>Estates</span></a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#">Residences</a>
+      <a href="#">Neighbourhood</a>
+      <a href="#">Floor Plans</a>
+      <a href="#">Contact</a>
+    </nav>
+    <a class="btn btn-ghost nav-cta" href="#">Book a Viewing</a>
+  </header>
+
+  <main>
+    <section class="hero" id="hero" aria-label="Property showcase">
+      <!-- Image stage: one layer per camera angle -->
+      <div class="stage" id="stage" aria-hidden="true">
+        <div class="layer is-active" data-view="front"  style="--img:url('assets/images/front.jpg')"></div>
+        <div class="layer"           data-view="left"   style="--img:url('assets/images/left.jpg')"></div>
+        <div class="layer"           data-view="aerial" style="--img:url('assets/images/aerial.jpg')"></div>
+        <div class="layer"           data-view="right"  style="--img:url('assets/images/right.jpg')"></div>
+      </div>
+
+      <div class="shade"></div>
+      <div class="grain"></div>
+      <div class="letterbox top"></div>
+      <div class="letterbox bottom"></div>
+      <div class="cursor-glow" id="cursorGlow"></div>
+
+      <div class="hero-content">
+        <p class="eyebrow"><span class="dot"></span> Now Selling · Ikoyi Heights</p>
+        <h1 class="title">
+          <span class="line"><span>Lumière</span></span>
+          <span class="line"><span><em>Residence</em></span></span>
+        </h1>
+        <p class="lede">A four-level contemporary villa wrapped in floor-to-ceiling glass, warm cove lighting and a private rooftop terrace overlooking the skyline.</p>
+
+        <div class="actions">
+          <a class="btn btn-gold" href="#">Schedule a Private Tour</a>
+          <a class="btn btn-ghost" href="#">Download Brochure</a>
+        </div>
+
+        <dl class="stats">
+          <div><dt>Price</dt><dd>$4,850,000</dd></div>
+          <div><dt>Bedrooms</dt><dd>6</dd></div>
+          <div><dt>Bathrooms</dt><dd>7</dd></div>
+          <div><dt>Interior</dt><dd>7,400 ft²</dd></div>
+        </dl>
+      </div>
+
+      <!-- Caption for the current view -->
+      <aside class="view-caption" aria-live="polite">
+        <span class="view-index" id="viewIndex">01</span>
+        <div>
+          <p class="view-label" id="viewLabel">Street Elevation</p>
+          <p class="view-desc" id="viewDesc">Double-height glazing &amp; sculpted balconies</p>
+        </div>
+      </aside>
+
+      <!-- Directional compass / view selector -->
+      <div class="compass" id="compass" role="group" aria-label="Choose a view">
+        <button class="c-btn c-up"     data-target="aerial" aria-label="Aerial view">Aerial</button>
+        <button class="c-btn c-left"   data-target="left"   aria-label="Side view">Side</button>
+        <button class="c-btn c-center is-active" data-target="front" aria-label="Front view">Front</button>
+        <button class="c-btn c-right"  data-target="right"  aria-label="Corner view">Corner</button>
+      </div>
+
+      <p class="hint" id="hint">
+        <span class="mouse"><span></span></span>
+        Move your cursor to explore the property
+      </p>
+
+      <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
