@@ -7,7 +7,7 @@
   --gold-deep: #c58b3c;
   --ease-cine: cubic-bezier(0.77, 0, 0.18, 1);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --dur: 1.6s;
+  --dur: 1.8s;
   --gutter: clamp(16px, 4vw, 56px);
 }
 
@@ -116,48 +116,15 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   background: var(--img) center / cover no-repeat;
   opacity: 0;
   z-index: 0;
-  transform: scale(1.18);
-  filter: blur(14px) brightness(0.7) saturate(1.2);
-  clip-path: inset(0 0 0 0);
-  will-change: transform, opacity, filter, clip-path;
-  transition:
-    opacity var(--dur) var(--ease-cine),
-    transform calc(var(--dur) * 1.6) var(--ease-out),
-    filter var(--dur) var(--ease-cine),
-    clip-path var(--dur) var(--ease-cine);
-}
-
-/* Incoming layer: starting positions per direction (applied without transition) */
-.layer.from-left   { clip-path: inset(0 100% 0 0); transform: scale(1.18) translateX(-4%); }
-.layer.from-right  { clip-path: inset(0 0 0 100%); transform: scale(1.18) translateX(4%); }
-.layer.from-up     { clip-path: inset(0 0 100% 0); transform: scale(1.22) translateY(-4%); }
-.layer.from-center { clip-path: circle(0% at var(--cx, 50%) var(--cy, 50%)); }
-.layer.no-anim     { transition: none !important; }
-
-.layer.is-active {
-  opacity: 1;
-  z-index: 2;
   transform: scale(1.04);
-  filter: blur(0) brightness(1) saturate(1);
-  clip-path: inset(0 0 0 0);
-}
-.layer.is-active.settled { clip-path: none; }
-.layer.from-center.is-active { clip-path: circle(150% at var(--cx, 50%) var(--cy, 50%)); }
-
-/* Outgoing layer lingers underneath, slowly pushing back and dimming */
-.layer.is-leaving {
-  opacity: 1;
-  z-index: 1;
-  transform: scale(1.12);
-  filter: blur(6px) brightness(0.55);
-  clip-path: inset(0 0 0 0);
-  transition:
-    transform calc(var(--dur) * 1.2) var(--ease-cine),
-    filter var(--dur) var(--ease-cine);
+  transition: opacity var(--dur) ease-in-out;
+  will-change: opacity;
 }
 
-/* Slow Ken Burns breathing on the settled image */
-.layer.settled { animation: breathe 18s ease-in-out infinite alternate; }
+/* Incoming view fades in on top; the previous one stays fully visible beneath
+   until the fade completes, so brightness never dips mid-change. */
+.layer.is-active { opacity: 1; z-index: 2; }
+.layer.is-leaving { opacity: 1; z-index: 1; }
 
 .shade {
   position: absolute;
@@ -179,20 +146,6 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   animation: grain 1s steps(6) infinite;
 }
-
-/* Cinematic letterbox bars that pulse in during a cut */
-.letterbox {
-  position: absolute;
-  left: 0; right: 0;
-  height: 7vh;
-  z-index: 5;
-  background: #000;
-  pointer-events: none;
-  transition: transform 0.9s var(--ease-cine);
-}
-.letterbox.top { top: 0; transform: translateY(-100%); }
-.letterbox.bottom { bottom: 0; transform: translateY(100%); }
-.hero.is-cutting .letterbox { transform: translateY(0); }
 
 .cursor-glow {
   position: absolute;
@@ -303,7 +256,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .view-desc { color: var(--muted); font-size: 0.85rem; margin-top: 6px; max-width: 220px; }
 .view-caption.swap .view-index,
 .view-caption.swap .view-label,
-.view-caption.swap .view-desc { animation: captionSwap 0.9s var(--ease-cine); }
+.view-caption.swap .view-desc { animation: captionSwap 1.2s ease-in-out; }
 
 /* ---------- Compass ---------- */
 .compass {
@@ -371,10 +324,9 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 @keyframes rise { to { opacity: 1; transform: translateY(0); } }
 @keyframes fadeIn { to { opacity: 1; } }
 @keyframes lineUp { to { transform: translateY(0); } }
-@keyframes breathe { from { transform: scale(1.04); } to { transform: scale(1.09); } }
 @keyframes pulse { 70% { box-shadow: 0 0 0 10px rgba(227, 178, 106, 0); } 100% { box-shadow: 0 0 0 0 rgba(227, 178, 106, 0); } }
 @keyframes wheel { 0% { opacity: 0; transform: translateY(0); } 30% { opacity: 1; } 100% { opacity: 0; transform: translateY(8px); } }
-@keyframes captionSwap { 0% { opacity: 0; transform: translateY(14px); filter: blur(6px); } 100% { opacity: 1; transform: none; filter: none; } }
+@keyframes captionSwap { from { opacity: 0; } to { opacity: 1; } }
 @keyframes grain {
   0% { transform: translate(0, 0); } 20% { transform: translate(-3%, 2%); } 40% { transform: translate(2%, -3%); }
   60% { transform: translate(-2%, -1%); } 80% { transform: translate(3%, 3%); } 100% { transform: translate(0, 0); }
@@ -414,8 +366,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 
 @media (prefers-reduced-motion: reduce) {
   :root { --dur: 0.6s; }
-  .layer { transform: none !important; filter: none !important; clip-path: none !important; }
-  .layer.settled, .grain, .dot, .mouse span { animation: none; }
+  .layer { transform: none; }
+  .grain, .dot, .mouse span { animation: none; }
   .stage { transform: none; }
-  .letterbox { display: none; }
 }

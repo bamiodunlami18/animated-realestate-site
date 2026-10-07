@@ -15,12 +15,12 @@
 
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  // Each view: which way the reveal sweeps in, plus its caption copy.
+  // Caption copy for each view.
   const VIEWS = {
-    front:  { order: 0, from: "center", label: "Street Elevation",   desc: "Double-height glazing & sculpted balconies" },
-    left:   { order: 1, from: "left",   label: "Side Perspective",   desc: "Timber fins, private wings & garden frontage" },
-    aerial: { order: 2, from: "up",     label: "Aerial Overview",    desc: "Rooftop lounge & a gated motor court for five" },
-    right:  { order: 3, from: "right",  label: "Corner Residence",   desc: "Wrap-around terraces & ambient cove lighting" },
+    front:  { order: 0, label: "Street Elevation",   desc: "Double-height glazing & sculpted balconies" },
+    left:   { order: 1, label: "Side Perspective",   desc: "Timber fins, private wings & garden frontage" },
+    aerial: { order: 2, label: "Aerial Overview",    desc: "Rooftop lounge & a gated motor court for five" },
+    right:  { order: 3, label: "Corner Residence",   desc: "Wrap-around terraces & ambient cove lighting" },
   };
 
   // Mouse zones (normalised -1..1 from the hero centre)
@@ -33,14 +33,13 @@
   let pendingTimer = null;
   let lastCut = 0;
   let settleTimer = null;
-  let cutTimer = null;
+  const FADE_MS = reduceMotion ? 700 : 1900;
 
   // Preload every angle so cuts never flash
   Object.values(layers).forEach((el) => {
     const url = getComputedStyle(el).getPropertyValue("--img").match(/url\(["']?(.*?)["']?\)/);
     if (url) new Image().src = url[1];
   });
-  layers.front.classList.add("settled");
 
   function zoneFor(nx, ny) {
     if (ny < -UP_THRESHOLD && -ny > Math.abs(nx)) return "aerial";
@@ -49,55 +48,34 @@
     return "front";
   }
 
-  function show(view, origin) {
+  function show(view) {
     if (view === current || !layers[view]) return;
 
     const now = performance.now();
     const wait = MIN_GAP_MS - (now - lastCut);
     if (wait > 0) {
       clearTimeout(pendingTimer);
-      pendingTimer = setTimeout(() => show(view, origin), wait);
+      pendingTimer = setTimeout(() => show(view), wait);
       return;
     }
     lastCut = now;
 
     const prev = layers[current];
     const next = layers[view];
-    const dir = VIEWS[view].from;
 
-    // Clean up any layer still fading from a previous cut
+    // Drop any layer left over from an earlier, unfinished fade
     Object.values(layers).forEach((el) => {
-      if (el !== prev && el !== next) el.classList.remove("is-leaving", "is-active", "settled");
+      if (el !== prev && el !== next) el.classList.remove("is-leaving", "is-active");
     });
 
-    // Outgoing frame recedes underneath
-    prev.classList.remove("is-active", "settled");
+    // Previous view stays solid underneath while the next one fades in over it
+    prev.classList.remove("is-active");
     prev.classList.add("is-leaving");
-
-    // Incoming frame: snap to its start pose, then animate in
-    next.classList.remove("is-leaving", "settled", "is-active", "from-left", "from-right", "from-up", "from-center");
-    if (origin) {
-      next.style.setProperty("--cx", `${origin.x}%`);
-      next.style.setProperty("--cy", `${origin.y}%`);
-    }
-    next.classList.add("no-anim", `from-${dir}`);
-    void next.offsetWidth; // commit start pose
-    next.classList.remove("no-anim");
-    requestAnimationFrame(() => next.classList.add("is-active"));
-
-    // Letterbox bars dip in for the cut
-    if (!reduceMotion) {
-      hero.classList.add("is-cutting");
-      clearTimeout(cutTimer);
-      cutTimer = setTimeout(() => hero.classList.remove("is-cutting"), 900);
-    }
+    next.classList.remove("is-leaving");
+    next.classList.add("is-active");
 
     clearTimeout(settleTimer);
-    settleTimer = setTimeout(() => {
-      next.classList.remove(`from-${dir}`);
-      next.classList.add("settled");
-      prev.classList.remove("is-leaving");
-    }, reduceMotion ? 700 : 2000);
+    settleTimer = setTimeout(() => prev.classList.remove("is-leaving"), FADE_MS);
 
     current = view;
     updateUI(view);
@@ -116,10 +94,10 @@
     viewDesc.textContent = v.desc;
   }
 
-  function request(view, origin) {
+  function request(view) {
     clearTimeout(pendingTimer);
     if (view === current) return;
-    pendingTimer = setTimeout(() => show(view, origin), DWELL_MS);
+    pendingTimer = setTimeout(() => show(view), DWELL_MS);
   }
 
   // ---- Smoothed parallax + cursor glow ----
@@ -158,7 +136,7 @@
     // Don't change the view while the cursor is on a control
     if (e.target.closest("a, button")) return;
 
-    request(zoneFor(nx, ny), { x: (x / r.width) * 100, y: (y / r.height) * 100 });
+    request(zoneFor(nx, ny));
 
     if (!hintHidden && Math.abs(nx) + Math.abs(ny) > 0.6) {
       hintHidden = true;

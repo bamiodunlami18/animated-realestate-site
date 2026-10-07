@@ -1,6 +1,6 @@
 # Lumière Residence — Animated Real-Estate Hero
 
-A static, dependency-free hero section for a luxury property listing. Moving the cursor switches the camera angle with a cinematic transition.
+A static, dependency-free hero section for a luxury property listing. Moving the cursor switches the camera angle with a slow, subtle crossfade.
 
 | Cursor | View |
 | --- | --- |
