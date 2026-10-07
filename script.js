@@ -8,7 +8,6 @@
   const viewIndex = document.getElementById("viewIndex");
   const viewLabel = document.getElementById("viewLabel");
   const viewDesc = document.getElementById("viewDesc");
-  const compassBtns = [...document.querySelectorAll(".c-btn")];
   const layers = Object.fromEntries(
     [...stage.querySelectorAll(".layer")].map((el) => [el.dataset.view, el])
   );
@@ -23,69 +22,56 @@
     right:  { order: 3, label: "Corner Residence",   desc: "Wrap-around terraces & ambient cove lighting" },
   };
 
-  // Mouse zones (normalised -1..1 from the hero centre)
-  const SIDE_THRESHOLD = 0.3;  // how far left/right before switching
-  const UP_THRESHOLD = 0.35;   // how far up before switching to aerial
-  const DWELL_MS = 160;        // cursor must rest in a zone this long (prevents flicker)
-  const MIN_GAP_MS = 650;      // minimum spacing between cuts
+  // Blend ramps, in normalised cursor units (-1..1 from the hero centre).
+  // Inside DEAD_ZONE only the front view shows; by FULL the other view is fully in.
+  const DEAD_ZONE = 0.12;
+  const FULL = 0.75;
+  const FOLLOW = 0.07; // how quickly the blend catches up with the cursor (per frame)
 
-  let current = "front";
-  let pendingTimer = null;
-  let lastCut = 0;
-  let settleTimer = null;
-  const FADE_MS = reduceMotion ? 700 : 1900;
-
-  // Preload every angle so cuts never flash
+  // Preload every angle so blending never shows a blank frame
   Object.values(layers).forEach((el) => {
     const url = getComputedStyle(el).getPropertyValue("--img").match(/url\(["']?(.*?)["']?\)/);
     if (url) new Image().src = url[1];
   });
 
-  function zoneFor(nx, ny) {
-    if (ny < -UP_THRESHOLD && -ny > Math.abs(nx)) return "aerial";
-    if (nx < -SIDE_THRESHOLD) return "left";
-    if (nx > SIDE_THRESHOLD) return "right";
-    return "front";
-  }
+  const ramp = (v) => {
+    const t = Math.min(Math.max((v - DEAD_ZONE) / (FULL - DEAD_ZONE), 0), 1);
+    return t * t * (3 - 2 * t); // smoothstep
+  };
 
-  function show(view) {
-    if (view === current || !layers[view]) return;
-
-    const now = performance.now();
-    const wait = MIN_GAP_MS - (now - lastCut);
-    if (wait > 0) {
-      clearTimeout(pendingTimer);
-      pendingTimer = setTimeout(() => show(view), wait);
-      return;
+  // How much of each view should be visible for a cursor position. Sums to 1.
+  function mix(nx, ny) {
+    let left = ramp(-nx);
+    let right = ramp(nx);
+    let aerial = ramp(-ny);
+    const total = left + right + aerial;
+    if (total > 1) {
+      left /= total;
+      right /= total;
+      aerial /= total;
     }
-    lastCut = now;
-
-    const prev = layers[current];
-    const next = layers[view];
-
-    // Drop any layer left over from an earlier, unfinished fade
-    Object.values(layers).forEach((el) => {
-      if (el !== prev && el !== next) el.classList.remove("is-leaving", "is-active");
-    });
-
-    // Previous view stays solid underneath while the next one fades in over it
-    prev.classList.remove("is-active");
-    prev.classList.add("is-leaving");
-    next.classList.remove("is-leaving");
-    next.classList.add("is-active");
-
-    clearTimeout(settleTimer);
-    settleTimer = setTimeout(() => prev.classList.remove("is-leaving"), FADE_MS);
-
-    current = view;
-    updateUI(view);
+    return { front: 1 - (left + right + aerial), left, right, aerial };
   }
 
-  function updateUI(view) {
-    const v = VIEWS[view];
-    compassBtns.forEach((b) => b.classList.toggle("is-active", b.dataset.target === view));
-    progressBar.style.transform = `translateX(${v.order * 100}%)`;
+  // Layers stack front < left < right < aerial, so convert the mix into
+  // per-layer opacities that composite to exactly those proportions.
+  function applyMix(m) {
+    const restBelowAerial = 1 - m.aerial;
+    const right = restBelowAerial > 0.001 ? m.right / restBelowAerial : 0;
+    const restBelowRight = restBelowAerial - m.right;
+    const left = restBelowRight > 0.001 ? m.left / restBelowRight : 0;
+    layers.aerial.style.opacity = m.aerial.toFixed(3);
+    layers.right.style.opacity = right.toFixed(3);
+    layers.left.style.opacity = left.toFixed(3);
+  }
 
+  let shown = "front";
+  function updateCaption(m) {
+    const view = Object.keys(m).reduce((a, b) => (m[b] > m[a] ? b : a));
+    if (view === shown) return;
+    shown = view;
+    const v = VIEWS[view];
+    progressBar.style.transform = `translateX(${v.order * 100}%)`;
     caption.classList.remove("swap");
     void caption.offsetWidth;
     caption.classList.add("swap");
@@ -94,32 +80,39 @@
     viewDesc.textContent = v.desc;
   }
 
-  function request(view) {
-    clearTimeout(pendingTimer);
-    if (view === current) return;
-    pendingTimer = setTimeout(() => show(view), DWELL_MS);
-  }
-
-  // ---- Smoothed parallax + cursor glow ----
+  // ---- Render loop: ease toward the cursor, then blend + parallax ----
   const target = { x: 0, y: 0, gx: window.innerWidth / 2, gy: window.innerHeight / 2 };
   const pos = { ...target };
 
   function tick() {
-    pos.x += (target.x - pos.x) * 0.06;
-    pos.y += (target.y - pos.y) * 0.06;
+    const k = reduceMotion ? 1 : FOLLOW;
+    pos.x += (target.x - pos.x) * k;
+    pos.y += (target.y - pos.y) * k;
     pos.gx += (target.gx - pos.gx) * 0.15;
     pos.gy += (target.gy - pos.gy) * 0.15;
-    stage.style.setProperty("--px", `${(-pos.x * 26).toFixed(2)}px`);
-    stage.style.setProperty("--py", `${(-pos.y * 18).toFixed(2)}px`);
+
+    const m = mix(pos.x, pos.y);
+    applyMix(m);
+    updateCaption(m);
+
+    if (!reduceMotion) {
+      stage.style.setProperty("--px", `${(-pos.x * 26).toFixed(2)}px`);
+      stage.style.setProperty("--py", `${(-pos.y * 18).toFixed(2)}px`);
+    }
     glow.style.setProperty("--gx", `${pos.gx.toFixed(1)}px`);
     glow.style.setProperty("--gy", `${pos.gy.toFixed(1)}px`);
     requestAnimationFrame(tick);
   }
-  if (!reduceMotion) requestAnimationFrame(tick);
+  requestAnimationFrame(tick);
+
+  function aim(nx, ny) {
+    target.x = Math.min(Math.max(nx, -1), 1);
+    target.y = Math.min(Math.max(ny, -1), 1);
+  }
 
   // ---- Mouse tracking ----
-  let hintHidden = false;
   // Tracked on window so the fixed nav bar doesn't count as "leaving" the hero
+  let hintHidden = false;
   window.addEventListener("pointermove", (e) => {
     if (e.pointerType === "touch") return;
     const r = hero.getBoundingClientRect();
@@ -128,15 +121,9 @@
     const nx = (x / r.width) * 2 - 1;
     const ny = (y / r.height) * 2 - 1;
 
-    target.x = nx;
-    target.y = ny;
+    aim(nx, ny);
     target.gx = x;
     target.gy = y;
-
-    // Don't change the view while the cursor is on a control
-    if (e.target.closest("a, button")) return;
-
-    request(zoneFor(nx, ny));
 
     if (!hintHidden && Math.abs(nx) + Math.abs(ny) > 0.6) {
       hintHidden = true;
@@ -146,47 +133,35 @@
 
   document.documentElement.addEventListener("pointerleave", (e) => {
     if (e.pointerType === "touch") return;
-    target.x = 0;
-    target.y = 0;
-    request("front");
+    aim(0, 0);
   });
 
-  // ---- Compass buttons ----
-  compassBtns.forEach((btn) =>
-    btn.addEventListener("click", () => {
-      clearTimeout(pendingTimer);
-      show(btn.dataset.target);
-    })
-  );
-
-  // ---- Keyboard: arrows mirror the mouse directions ----
+  // ---- Keyboard: arrows look in that direction ----
   window.addEventListener("keydown", (e) => {
-    const map = { ArrowLeft: "left", ArrowRight: "right", ArrowUp: "aerial", ArrowDown: "front" };
+    const map = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 0] };
     if (map[e.key]) {
       e.preventDefault();
-      clearTimeout(pendingTimer);
-      show(map[e.key]);
+      aim(...map[e.key]);
     }
   });
 
-  // ---- Touch: swipe in a direction to look that way ----
+  // ---- Touch: drag across the hero to look around ----
   let touchStart = null;
   hero.addEventListener("touchstart", (e) => {
     const t = e.touches[0];
-    touchStart = { x: t.clientX, y: t.clientY };
+    touchStart = { x: t.clientX, y: t.clientY, nx: target.x, ny: target.y };
   }, { passive: true });
 
-  hero.addEventListener("touchend", (e) => {
+  hero.addEventListener("touchmove", (e) => {
     if (!touchStart) return;
-    const t = e.changedTouches[0];
-    const dx = t.clientX - touchStart.x;
-    const dy = t.clientY - touchStart.y;
-    touchStart = null;
-    if (Math.max(Math.abs(dx), Math.abs(dy)) < 40) return;
-    let view;
-    if (Math.abs(dy) > Math.abs(dx)) view = dy < 0 ? "aerial" : "front";
-    else view = dx < 0 ? "left" : "right";
-    clearTimeout(pendingTimer);
-    show(view);
+    const t = e.touches[0];
+    const r = hero.getBoundingClientRect();
+    // Dragging left reveals the side view, dragging up reveals the aerial view
+    aim(
+      touchStart.nx + ((t.clientX - touchStart.x) / r.width) * 2.5,
+      touchStart.ny + ((t.clientY - touchStart.y) / r.height) * 2.5
+    );
   }, { passive: true });
+
+  hero.addEventListener("touchend", () => { touchStart = null; }, { passive: true });
 })();

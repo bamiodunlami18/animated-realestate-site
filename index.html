@@ -26,7 +26,7 @@
     <section class="hero" id="hero" aria-label="Property showcase">
       <!-- Image stage: one layer per camera angle -->
       <div class="stage" id="stage" aria-hidden="true">
-        <div class="layer is-active" data-view="front"  style="--img:url('assets/images/front.jpg')"></div>
+        <div class="layer" data-view="front"  style="--img:url('assets/images/front.jpg')"></div>
         <div class="layer"           data-view="left"   style="--img:url('assets/images/left.jpg')"></div>
         <div class="layer"           data-view="aerial" style="--img:url('assets/images/aerial.jpg')"></div>
         <div class="layer"           data-view="right"  style="--img:url('assets/images/right.jpg')"></div>
@@ -65,14 +65,6 @@
           <p class="view-desc" id="viewDesc">Double-height glazing &amp; sculpted balconies</p>
         </div>
       </aside>
-
-      <!-- Directional compass / view selector -->
-      <div class="compass" id="compass" role="group" aria-label="Choose a view">
-        <button class="c-btn c-up"     data-target="aerial" aria-label="Aerial view">Aerial</button>
-        <button class="c-btn c-left"   data-target="left"   aria-label="Side view">Side</button>
-        <button class="c-btn c-center is-active" data-target="front" aria-label="Front view">Front</button>
-        <button class="c-btn c-right"  data-target="right"  aria-label="Corner view">Corner</button>
-      </div>
 
       <p class="hint" id="hint">
         <span class="mouse"><span></span></span>

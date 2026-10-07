@@ -7,7 +7,6 @@
   --gold-deep: #c58b3c;
   --ease-cine: cubic-bezier(0.77, 0, 0.18, 1);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --dur: 1.8s;
   --gutter: clamp(16px, 4vw, 56px);
 }
 
@@ -110,21 +109,20 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   will-change: transform;
 }
 
+/* Front view is the base; the other angles sit above it and their opacity
+   is driven continuously by the cursor position (see script.js). */
 .layer {
   position: absolute;
   inset: 0;
   background: var(--img) center / cover no-repeat;
   opacity: 0;
-  z-index: 0;
   transform: scale(1.04);
-  transition: opacity var(--dur) ease-in-out;
   will-change: opacity;
 }
-
-/* Incoming view fades in on top; the previous one stays fully visible beneath
-   until the fade completes, so brightness never dips mid-change. */
-.layer.is-active { opacity: 1; z-index: 2; }
-.layer.is-leaving { opacity: 1; z-index: 1; }
+.layer[data-view="front"]  { opacity: 1; z-index: 0; }
+.layer[data-view="left"]   { z-index: 1; }
+.layer[data-view="right"]  { z-index: 2; }
+.layer[data-view="aerial"] { z-index: 3; }
 
 .shade {
   position: absolute;
@@ -258,42 +256,6 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .view-caption.swap .view-label,
 .view-caption.swap .view-desc { animation: captionSwap 1.2s ease-in-out; }
 
-/* ---------- Compass ---------- */
-.compass {
-  position: absolute;
-  z-index: 10;
-  right: var(--gutter);
-  bottom: clamp(40px, 7vh, 72px);
-  display: grid;
-  grid-template-columns: repeat(3, auto);
-  grid-template-areas:
-    ".    up     ."
-    "left center right";
-  gap: 8px;
-  opacity: 0;
-  animation: fadeIn 1.2s var(--ease-out) 2s forwards;
-}
-.c-btn {
-  padding: 9px 14px;
-  font-size: 0.66rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  color: var(--muted);
-  background: rgba(11, 15, 26, 0.25);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  transition: all 0.5s var(--ease-out);
-}
-.c-btn:hover { color: var(--paper); border-color: rgba(246, 241, 231, 0.5); }
-.c-btn.is-active { color: #1a1206; background: var(--gold); border-color: var(--gold); }
-.c-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
-.c-up { grid-area: up; }
-.c-left { grid-area: left; }
-.c-center { grid-area: center; }
-.c-right { grid-area: right; }
-
 /* ---------- Hint & progress ---------- */
 .hint {
   position: absolute;
@@ -336,7 +298,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 /* ---------- Responsive ---------- */
 @media (max-width: 960px) {
   .nav-links { display: none; }
-  .view-caption { top: auto; bottom: calc(clamp(40px, 7vh, 72px) + 96px); }
+  .view-caption { top: auto; bottom: clamp(40px, 7vh, 72px); }
   .view-index { font-size: 2.4rem; }
 }
 
@@ -349,13 +311,12 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
       linear-gradient(0deg, rgba(8, 11, 20, 0.95) 0%, rgba(8, 11, 20, 0.6) 48%, rgba(8, 11, 20, 0.1) 75%),
       linear-gradient(180deg, rgba(8, 11, 20, 0.6) 0%, rgba(8, 11, 20, 0) 22%);
   }
-  .hero-content { right: var(--gutter); bottom: 128px; }
+  .hero-content { right: var(--gutter); bottom: 56px; }
   .lede { font-size: 0.92rem; }
   .actions .btn { flex: 1 1 auto; padding: 13px 18px; }
   .stats { gap: 16px; margin-top: 26px; flex-wrap: wrap; }
   .stats dd { font-size: 1.25rem; }
   .view-caption { display: none; }
-  .compass { left: var(--gutter); right: var(--gutter); bottom: 28px; justify-content: center; }
   .hint { display: none; }
   .cursor-glow { display: none; }
 }
@@ -365,7 +326,6 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :root { --dur: 0.6s; }
   .layer { transform: none; }
   .grain, .dot, .mouse span { animation: none; }
   .stage { transform: none; }
