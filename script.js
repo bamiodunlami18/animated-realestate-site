@@ -8,6 +8,13 @@
   const viewIndex = document.getElementById("viewIndex");
   const viewLabel = document.getElementById("viewLabel");
   const viewDesc = document.getElementById("viewDesc");
+  const journey = document.getElementById("journey");
+  const zoom = document.getElementById("zoom");
+  const shade = document.getElementById("shade");
+  const heroUi = document.getElementById("heroUi");
+  const living = document.getElementById("living");
+  const livingMedia = document.getElementById("livingMedia");
+  const doorGlow = document.getElementById("doorGlow");
   const layers = Object.fromEntries(
     [...stage.querySelectorAll(".layer")].map((el) => [el.dataset.view, el])
   );
@@ -80,6 +87,97 @@
     viewDesc.textContent = v.desc;
   }
 
+  // ---- Scroll journey: street -> front door -> living room ----
+  // Front door position in front.jpg (2000 x 1116), in image pixels.
+  const IMG = { w: 2000, h: 1116 };
+  const DOOR = { x: 1072, y: 707, w: 66, h: 120 };
+  const STAGE_BLEED = 1.08; // .stage is inset -4% on each side
+  const LAYER_SCALE = 1.04; // .layer transform
+
+  const clamp01 = (v) => Math.min(Math.max(v, 0), 1);
+  const smooth = (v) => { const t = clamp01(v); return t * t * (3 - 2 * t); };
+  const range = (v, a, b) => clamp01((v - a) / (b - a));
+  const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
+  let geo = null;
+  function measure() {
+    const W = hero.clientWidth;
+    const H = hero.clientHeight;
+    // Same maths as background-size: cover on the oversized stage
+    const s = Math.max((W * STAGE_BLEED) / IMG.w, (H * STAGE_BLEED) / IMG.h) * LAYER_SCALE;
+    const ox = W / 2 + (DOOR.x - IMG.w / 2) * s;
+    const oy = H / 2 + (DOOR.y - IMG.h / 2) * s;
+    const hw = (DOOR.w * s) / 2;
+    const hh = (DOOR.h * s) / 2;
+    // Zoom needed for the doorway to cover the whole screen
+    const maxZ = Math.max(ox / hw, (W - ox) / hw, oy / hh, (H - oy) / hh) * 1.04;
+    geo = { W, H, ox, oy, hw, hh, maxZ };
+    zoom.style.setProperty("--ox", `${ox}px`);
+    zoom.style.setProperty("--oy", `${oy}px`);
+    doorGlow.style.setProperty("--ox", `${ox}px`);
+    doorGlow.style.setProperty("--oy", `${oy}px`);
+  }
+  measure();
+  window.addEventListener("resize", measure);
+
+  function scrollProgress() {
+    const travel = journey.offsetHeight - window.innerHeight;
+    return travel > 0 ? clamp01(-journey.getBoundingClientRect().top / travel) : 0;
+  }
+
+  let sp = scrollProgress();
+  let inside = false;
+
+  function renderJourney() {
+    const { W, H, ox, oy, hw, hh, maxZ } = geo;
+
+    // Hero copy lifts away first
+    const ui = 1 - smooth(sp / 0.12);
+    heroUi.style.setProperty("--ui", ui.toFixed(3));
+    shade.style.setProperty("--shade", (1 - smooth((sp - 0.02) / 0.2)).toFixed(3));
+    hero.classList.toggle("is-scrolled", sp > 0.01);
+
+    // Walk towards the door: exponential zoom feels like constant forward speed
+    const t = reduceMotion ? 0 : easeInOut(range(sp, 0.04, 0.62));
+    const z = Math.exp(Math.log(maxZ) * t);
+    zoom.style.setProperty("--z", z.toFixed(4));
+
+    // The living room shows through the doorway, which grows with the zoom
+    const top = Math.max(oy - hh * z, 0);
+    const bottom = Math.max(H - (oy + hh * z), 0);
+    const left = Math.max(ox - hw * z, 0);
+    const right = Math.max(W - (ox + hw * z), 0);
+    if (reduceMotion) {
+      living.style.setProperty("--ct", "0px");
+      living.style.setProperty("--cr", "0px");
+      living.style.setProperty("--cb", "0px");
+      living.style.setProperty("--cl", "0px");
+    } else {
+      living.style.setProperty("--ct", `${top.toFixed(1)}px`);
+      living.style.setProperty("--cr", `${right.toFixed(1)}px`);
+      living.style.setProperty("--cb", `${bottom.toFixed(1)}px`);
+      living.style.setProperty("--cl", `${left.toFixed(1)}px`);
+    }
+    const lo = reduceMotion ? smooth((sp - 0.2) / 0.4) : smooth((sp - 0.06) / 0.14);
+    living.style.setProperty("--lo", lo.toFixed(3));
+
+    // Inside: the room settles from a bright, wide glimpse to its true exposure
+    const settle = reduceMotion ? 1 : 1 - Math.pow(1 - range(sp, 0.25, 0.85), 3);
+    livingMedia.style.setProperty("--ls", (1.35 - 0.35 * settle).toFixed(4));
+    livingMedia.style.setProperty("--lb", (1.6 - 0.6 * settle).toFixed(3));
+    livingMedia.style.setProperty("--lsat", (0.8 + 0.2 * settle).toFixed(3));
+
+    // Warm bloom as you cross the threshold
+    const glow = reduceMotion ? 0 : 0.5 * Math.sin(Math.PI * range(sp, 0.32, 0.72));
+    doorGlow.style.setProperty("--glow", glow.toFixed(3));
+
+    // Hero is fully hidden once the doorway covers the screen
+    hero.style.visibility = top + bottom + left + right === 0 && lo === 1 ? "hidden" : "";
+
+    if (!inside && sp > 0.8) { inside = true; living.classList.add("is-inside"); }
+    else if (inside && sp < 0.7) { inside = false; living.classList.remove("is-inside"); }
+  }
+
   // ---- Render loop: ease toward the cursor, then blend + parallax ----
   const target = { x: 0, y: 0, gx: window.innerWidth / 2, gy: window.innerHeight / 2 };
   const pos = { ...target };
@@ -91,13 +189,20 @@
     pos.gx += (target.gx - pos.gx) * 0.15;
     pos.gy += (target.gy - pos.gy) * 0.15;
 
-    const m = mix(pos.x, pos.y);
+    const p = scrollProgress();
+    sp = reduceMotion ? p : sp + (p - sp) * 0.1;
+    if (Math.abs(p - sp) < 0.0005) sp = p;
+    renderJourney();
+
+    // Mouse influence fades out as the walk begins, so the zoom lands on the front door
+    const heroWeight = 1 - smooth(sp / 0.1);
+    const m = mix(pos.x * heroWeight, pos.y * heroWeight);
     applyMix(m);
     updateCaption(m);
 
     if (!reduceMotion) {
-      stage.style.setProperty("--px", `${(-pos.x * 26).toFixed(2)}px`);
-      stage.style.setProperty("--py", `${(-pos.y * 18).toFixed(2)}px`);
+      stage.style.setProperty("--px", `${(-pos.x * 26 * heroWeight).toFixed(2)}px`);
+      stage.style.setProperty("--py", `${(-pos.y * 18 * heroWeight).toFixed(2)}px`);
     }
     glow.style.setProperty("--gx", `${pos.gx.toFixed(1)}px`);
     glow.style.setProperty("--gy", `${pos.gy.toFixed(1)}px`);
@@ -136,16 +241,16 @@
     aim(0, 0);
   });
 
-  // ---- Keyboard: arrows look in that direction ----
+  // ---- Keyboard: left/right look around (up/down keep scrolling the page) ----
   window.addEventListener("keydown", (e) => {
-    const map = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 0] };
-    if (map[e.key]) {
+    const map = { ArrowLeft: -1, ArrowRight: 1 };
+    if (map[e.key] && scrollProgress() < 0.02) {
       e.preventDefault();
-      aim(...map[e.key]);
+      aim(target.x === map[e.key] ? 0 : map[e.key], 0);
     }
   });
 
-  // ---- Touch: drag across the hero to look around ----
+  // ---- Touch: drag sideways across the hero to look around (vertical swipes scroll) ----
   let touchStart = null;
   hero.addEventListener("touchstart", (e) => {
     const t = e.touches[0];
@@ -156,11 +261,8 @@
     if (!touchStart) return;
     const t = e.touches[0];
     const r = hero.getBoundingClientRect();
-    // Dragging left reveals the side view, dragging up reveals the aerial view
-    aim(
-      touchStart.nx + ((t.clientX - touchStart.x) / r.width) * 2.5,
-      touchStart.ny + ((t.clientY - touchStart.y) / r.height) * 2.5
-    );
+    // Dragging left reveals the side view, dragging right the corner view
+    aim(touchStart.nx + ((t.clientX - touchStart.x) / r.width) * 2.5, 0);
   }, { passive: true });
 
   hero.addEventListener("touchend", () => { touchStart = null; }, { passive: true });

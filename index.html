@@ -23,7 +23,11 @@
   </header>
 
   <main>
+    <!-- Scroll journey: the hero stays pinned while the camera walks through the front door -->
+    <div class="journey" id="journey">
+    <div class="journey-sticky">
     <section class="hero" id="hero" aria-label="Property showcase">
+      <div class="zoom" id="zoom">
       <!-- Image stage: one layer per camera angle -->
       <div class="stage" id="stage" aria-hidden="true">
         <div class="layer" data-view="front"  style="--img:url('assets/images/front.jpg')"></div>
@@ -31,11 +35,13 @@
         <div class="layer"           data-view="aerial" style="--img:url('assets/images/aerial.jpg')"></div>
         <div class="layer"           data-view="right"  style="--img:url('assets/images/right.jpg')"></div>
       </div>
+      </div>
 
-      <div class="shade"></div>
+      <div class="shade" id="shade"></div>
       <div class="grain"></div>
       <div class="cursor-glow" id="cursorGlow"></div>
 
+      <div class="hero-ui" id="heroUi">
       <div class="hero-content">
         <p class="eyebrow"><span class="dot"></span> Now Selling · Ikoyi Heights</p>
         <h1 class="title">
@@ -71,9 +77,59 @@
         Move your cursor to explore the property
       </p>
 
+      <div class="scroll-cue" aria-hidden="true">
+        <span>Scroll to step inside</span>
+        <i></i>
+      </div>
+
       <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
+      </div>
     </section>
+
+    <!-- Living room, revealed through the front door -->
+    <section class="living" id="living" aria-labelledby="livingTitle">
+      <div class="living-media" id="livingMedia">
+        <img src="assets/images/living-room.jpg" alt="Double-height living room with a coffered, cove-lit ceiling, a marble TV wall, a sectional sofa and a floating staircase." />
+
+        <button class="spot" style="--x:50%; --y:13%; --i:0" aria-label="Coffered ceiling">
+          <span class="spot-label">Coffered ceiling · cove lighting</span>
+        </button>
+        <button class="spot" style="--x:16%; --y:40%; --i:1" aria-label="Marble feature wall">
+          <span class="spot-label">Book-matched marble feature wall</span>
+        </button>
+        <button class="spot" style="--x:61%; --y:52%; --i:2" aria-label="Floating staircase">
+          <span class="spot-label">Floating staircase · glass balustrade</span>
+        </button>
+        <button class="spot" style="--x:88%; --y:36%; --i:3" aria-label="Double-height glazing">
+          <span class="spot-label">Double-height glazing · skyline view</span>
+        </button>
+      </div>
+      <div class="living-shade"></div>
+
+      <div class="living-content">
+        <p class="eyebrow-static">Ground Floor · The Living Room</p>
+        <h2 class="living-title" id="livingTitle">
+          <span class="line"><span>Come in,</span></span>
+          <span class="line"><span><em>stay a while.</em></span></span>
+        </h2>
+        <p class="living-lede">A sunken lounge under a coffered, cove-lit ceiling, anchored by a marble media wall and open to the double-height entry and a floating staircase.</p>
+        <dl class="living-specs">
+          <div><dt>Ceiling</dt><dd>4.2 m</dd></div>
+          <div><dt>Lounge</dt><dd>68 m²</dd></div>
+          <div><dt>Floors</dt><dd>Marble</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <div class="door-glow" id="doorGlow" aria-hidden="true"></div>
+    </div>
+    </div>
   </main>
+
+  <footer class="footer">
+    <span class="brand-small">LUMIÈRE <em>Estates</em></span>
+    <span>Ikoyi Heights · Viewings by appointment</span>
+  </footer>
 
   <script src="script.js"></script>
 </body>
