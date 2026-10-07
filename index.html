@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Lumière Residence — Luxury Villa for Sale</title>
-  <meta name="description" content="Lumière Residence: a four-level contemporary villa with rooftop terrace, double-height glazing and private parking. Now for sale." />
+  <meta name="description" content="Lumière Residence: a four-level contemporary villa with a pool garden, double-height glazing and private parking. Now for sale." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
@@ -23,116 +23,105 @@
   </header>
 
   <main>
-    <!-- Scroll journey: the hero stays pinned, then scrolling plays the video tour frame by frame -->
+    <!-- Scroll journey: the screen stays pinned while scrolling plays the video tour frame by frame -->
     <div class="journey" id="journey">
-    <div class="journey-sticky">
-    <section class="hero" id="hero" aria-label="Property showcase">
-      <!-- Image stage: one layer per camera angle -->
-      <div class="stage" id="stage" aria-hidden="true">
-        <div class="layer" data-view="front"  style="--img:url('assets/images/front.jpg')"></div>
-        <div class="layer"           data-view="left"   style="--img:url('assets/images/left.jpg')"></div>
-        <div class="layer"           data-view="aerial" style="--img:url('assets/images/aerial.jpg')"></div>
-        <div class="layer"           data-view="right"  style="--img:url('assets/images/right.jpg')"></div>
-      </div>
+      <div class="journey-sticky" id="sticky">
+        <video class="tour-video" id="tourVideo" muted playsinline preload="auto"
+               poster="assets/video/tour-poster.jpg"
+               data-src-large="assets/video/tour-1600.mp4"
+               data-src-small="assets/video/tour-960.mp4"
+               aria-label="Video tour of Lumière Residence"></video>
+        <div class="shade"></div>
+        <div class="grain"></div>
 
-      <div class="shade" id="shade"></div>
-      <div class="grain"></div>
-      <div class="cursor-glow" id="cursorGlow"></div>
+        <!-- Opening screen, over the video's first (street) frame -->
+        <section class="intro" id="intro" aria-labelledby="introTitle">
+          <p class="eyebrow"><span class="dot"></span> Now Selling · Ikoyi Heights</p>
+          <h1 class="title" id="introTitle">
+            <span class="line"><span>Lumière</span></span>
+            <span class="line"><span><em>Residence</em></span></span>
+          </h1>
+          <p class="lede">A four-level contemporary villa wrapped in floor-to-ceiling glass, with a lit pool garden and gated parking for five.</p>
+          <div class="actions">
+            <a class="btn btn-gold" href="#">Schedule a Private Tour</a>
+            <a class="btn btn-ghost" href="#">Download Brochure</a>
+          </div>
+          <dl class="stats">
+            <div><dt>Price</dt><dd>$4,850,000</dd></div>
+            <div><dt>Bedrooms</dt><dd>6</dd></div>
+            <div><dt>Bathrooms</dt><dd>7</dd></div>
+            <div><dt>Interior</dt><dd>7,400 ft²</dd></div>
+          </dl>
+        </section>
 
-      <div class="hero-ui" id="heroUi">
-      <div class="hero-content">
-        <p class="eyebrow"><span class="dot"></span> Now Selling · Ikoyi Heights</p>
-        <h1 class="title">
-          <span class="line"><span>Lumière</span></span>
-          <span class="line"><span><em>Residence</em></span></span>
-        </h1>
-        <p class="lede">A four-level contemporary villa wrapped in floor-to-ceiling glass, warm cove lighting and a private rooftop terrace overlooking the skyline.</p>
-
-        <div class="actions">
-          <a class="btn btn-gold" href="#">Schedule a Private Tour</a>
-          <a class="btn btn-ghost" href="#">Download Brochure</a>
+        <div class="scroll-cue" aria-hidden="true">
+          <span>Scroll to tour the home</span>
+          <i></i>
         </div>
 
-        <dl class="stats">
-          <div><dt>Price</dt><dd>$4,850,000</dd></div>
-          <div><dt>Bedrooms</dt><dd>6</dd></div>
-          <div><dt>Bathrooms</dt><dd>7</dd></div>
-          <div><dt>Interior</dt><dd>7,400 ft²</dd></div>
-        </dl>
-      </div>
-
-      <!-- Caption for the current view -->
-      <aside class="view-caption" aria-live="polite">
-        <span class="view-index" id="viewIndex">01</span>
-        <div>
-          <p class="view-label" id="viewLabel">Street Elevation</p>
-          <p class="view-desc" id="viewDesc">Double-height glazing &amp; sculpted balconies</p>
+        <!-- One caption per room. data-start / data-end are seconds in the video. -->
+        <div class="tour-captions" id="tourCaptions">
+          <article class="cap" data-start="2" data-end="11" data-name="Living Room">
+            <p class="cap-kicker">Ground floor</p>
+            <h2 class="cap-title">The Living Room</h2>
+            <p class="cap-text">A coffered, cove-lit ceiling over a marble media wall, opening onto the floating staircase.</p>
+            <div class="cap-actions">
+              <a class="btn btn-gold" href="#">Book a Viewing</a>
+              <a class="btn btn-ghost" href="#">Floor Plan</a>
+            </div>
+          </article>
+          <article class="cap" data-start="11" data-end="17" data-name="Kitchen">
+            <p class="cap-kicker">Ground floor</p>
+            <h2 class="cap-title">The Kitchen</h2>
+            <p class="cap-text">A waterfall marble island with bar seating, walnut joinery and a range under a statement hood.</p>
+            <div class="cap-actions">
+              <a class="btn btn-gold" href="#">Book a Viewing</a>
+              <a class="btn btn-ghost" href="#">Specifications</a>
+            </div>
+          </article>
+          <article class="cap" data-start="17" data-end="24" data-name="Dining">
+            <p class="cap-kicker">Ground floor</p>
+            <h2 class="cap-title">Dining &amp; Wine</h2>
+            <p class="cap-text">A long table for eight beside a glass-fronted, climate-controlled wine wall.</p>
+            <div class="cap-actions">
+              <a class="btn btn-gold" href="#">Book a Viewing</a>
+              <a class="btn btn-ghost" href="#">Floor Plan</a>
+            </div>
+          </article>
+          <article class="cap" data-start="24" data-end="30" data-name="Primary Suite">
+            <p class="cap-kicker">Upper floor</p>
+            <h2 class="cap-title">The Primary Suite</h2>
+            <p class="cap-text">Floor-to-ceiling glass framing the skyline, with a walk-in wardrobe behind the bed wall.</p>
+            <div class="cap-actions">
+              <a class="btn btn-gold" href="#">Book a Viewing</a>
+              <a class="btn btn-ghost" href="#">Floor Plan</a>
+            </div>
+          </article>
+          <article class="cap" data-start="30" data-end="37" data-name="Primary Bath">
+            <p class="cap-kicker">Upper floor</p>
+            <h2 class="cap-title">The Primary Bath</h2>
+            <p class="cap-text">Twin floating vanities, a freestanding tub and a glass-walled rain shower.</p>
+            <div class="cap-actions">
+              <a class="btn btn-gold" href="#">Book a Viewing</a>
+              <a class="btn btn-ghost" href="#">Finishes &amp; Fittings</a>
+            </div>
+          </article>
+          <article class="cap" data-start="37" data-end="45" data-name="Garden &amp; Pool">
+            <p class="cap-kicker">Outdoors</p>
+            <h2 class="cap-title">Garden &amp; Pool</h2>
+            <p class="cap-text">A lit pool, sun loungers and a covered terrace for outdoor lounging and dining.</p>
+            <div class="cap-actions">
+              <a class="btn btn-gold" href="#">Schedule a Private Tour</a>
+              <a class="btn btn-ghost" href="#">Download Brochure</a>
+            </div>
+          </article>
         </div>
-      </aside>
 
-      <p class="hint" id="hint">
-        <span class="mouse"><span></span></span>
-        Move your cursor to explore the property
-      </p>
+        <nav class="tour-rail" id="tourRail" aria-label="Rooms"></nav>
 
-      <div class="scroll-cue" aria-hidden="true">
-        <span>Scroll to tour the home</span>
-        <i></i>
+        <div class="tour-time" aria-hidden="true"><span id="tourBar"></span></div>
+        <p class="tour-loading" id="tourLoading">Loading tour…</p>
       </div>
-
-      <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
-      </div>
-    </section>
-
-    <!-- Video tour: scroll position sets the playhead -->
-    <section class="tour" id="tour" aria-label="Video tour of the home">
-      <video class="tour-video" id="tourVideo" muted playsinline preload="auto"
-             poster="assets/video/tour-poster.jpg"
-             data-src-large="assets/video/tour-1600.mp4"
-             data-src-small="assets/video/tour-960.mp4"></video>
-      <div class="tour-shade"></div>
-
-      <!-- One caption per room. data-start / data-end are seconds in the video. -->
-      <div class="tour-captions" id="tourCaptions">
-        <article class="cap" data-start="2" data-end="11" data-name="Living Room">
-          <p class="cap-kicker">Ground floor</p>
-          <h2 class="cap-title">The Living Room</h2>
-          <p class="cap-text">A coffered, cove-lit ceiling over a marble media wall, opening onto the floating staircase.</p>
-        </article>
-        <article class="cap" data-start="11" data-end="17" data-name="Kitchen">
-          <p class="cap-kicker">Ground floor</p>
-          <h2 class="cap-title">The Kitchen</h2>
-          <p class="cap-text">A waterfall marble island with bar seating, walnut joinery and a range under a statement hood.</p>
-        </article>
-        <article class="cap" data-start="17" data-end="24" data-name="Dining">
-          <p class="cap-kicker">Ground floor</p>
-          <h2 class="cap-title">Dining &amp; Wine</h2>
-          <p class="cap-text">A long table for eight beside a glass-fronted, climate-controlled wine wall.</p>
-        </article>
-        <article class="cap" data-start="24" data-end="30" data-name="Primary Suite">
-          <p class="cap-kicker">Upper floor</p>
-          <h2 class="cap-title">The Primary Suite</h2>
-          <p class="cap-text">Floor-to-ceiling glass framing the skyline, with a walk-in wardrobe behind the bed wall.</p>
-        </article>
-        <article class="cap" data-start="30" data-end="37" data-name="Primary Bath">
-          <p class="cap-kicker">Upper floor</p>
-          <h2 class="cap-title">The Primary Bath</h2>
-          <p class="cap-text">Twin floating vanities, a freestanding tub and a glass-walled rain shower.</p>
-        </article>
-        <article class="cap" data-start="37" data-end="45" data-name="Garden &amp; Pool">
-          <p class="cap-kicker">Outdoors</p>
-          <h2 class="cap-title">Garden &amp; Pool</h2>
-          <p class="cap-text">A lit pool, sun loungers and a covered terrace for outdoor lounging and dining.</p>
-          <a class="btn btn-gold" href="#">Schedule a Private Tour</a>
-        </article>
-      </div>
-
-      <nav class="tour-rail" id="tourRail" aria-label="Rooms"></nav>
-
-      <div class="tour-time" aria-hidden="true"><span id="tourBar"></span></div>
-      <p class="tour-loading" id="tourLoading">Loading tour…</p>
-    </section>
-    </div>
     </div>
   </main>
 

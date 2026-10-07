@@ -1,8 +1,9 @@
 :root {
   --ink: #0b0f1a;
   --paper: #f6f1e7;
+  --soft: rgba(246, 241, 231, 0.88);
   --muted: rgba(246, 241, 231, 0.68);
-  --line: rgba(246, 241, 231, 0.18);
+  --line: rgba(246, 241, 231, 0.22);
   --gold: #e3b26a;
   --gold-deep: #c58b3c;
   --ease-cine: cubic-bezier(0.77, 0, 0.18, 1);
@@ -86,11 +87,11 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   white-space: nowrap;
 }
 .btn:hover { transform: translateY(-2px); }
+.btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 .btn-gold { background: linear-gradient(135deg, var(--gold), var(--gold-deep)); color: #1a1206; box-shadow: 0 10px 40px -10px rgba(227, 178, 106, 0.6); }
-.btn-ghost { border: 1px solid var(--line); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); background: rgba(11, 15, 26, 0.18); }
+.btn-ghost { border: 1px solid var(--line); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); background: rgba(11, 15, 26, 0.3); }
 .btn-ghost:hover { border-color: var(--gold); color: var(--gold); }
 
-/* ---------- Hero ---------- */
 /* ---------- Scroll journey ----------
    The journey is taller than the screen; its sticky child stays pinned while
    scroll progress scrubs the video tour. Taller = slower playback per scroll. */
@@ -103,104 +104,64 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   overflow: hidden;
 }
 
-.hero {
+.tour-video {
   position: absolute;
   inset: 0;
-  overflow: hidden;
-  isolation: isolate;
-  cursor: crosshair;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: var(--ink);
 }
 
-/* Stage is oversized so the parallax drift never reveals an edge */
-.stage {
-  position: absolute;
-  inset: -4%;
-  transform: translate3d(var(--px, 0px), var(--py, 0px), 0);
-  will-change: transform;
-}
-
-/* Front view is the base; the other angles sit above it and their opacity
-   is driven continuously by the cursor position (see script.js). */
-.layer {
-  position: absolute;
-  inset: 0;
-  background: var(--img) center / cover no-repeat;
-  opacity: 0;
-  transform: scale(1.04);
-  will-change: opacity;
-}
-.layer[data-view="front"]  { opacity: 1; z-index: 0; }
-.layer[data-view="left"]   { z-index: 1; }
-.layer[data-view="right"]  { z-index: 2; }
-.layer[data-view="aerial"] { z-index: 3; }
-
+/* Darkens the centre (where the copy sits) and the top (behind the nav) */
 .shade {
   position: absolute;
   inset: 0;
-  z-index: 3;
   pointer-events: none;
   background:
-    linear-gradient(90deg, rgba(8, 11, 20, 0.86) 0%, rgba(8, 11, 20, 0.55) 34%, rgba(8, 11, 20, 0) 62%),
-    linear-gradient(0deg, rgba(8, 11, 20, 0.85) 0%, rgba(8, 11, 20, 0) 32%),
-    linear-gradient(180deg, rgba(8, 11, 20, 0.55) 0%, rgba(8, 11, 20, 0) 22%);
+    radial-gradient(ellipse 70% 60% at 50% 55%, rgba(8, 11, 20, 0.62) 0%, rgba(8, 11, 20, 0.32) 55%, rgba(8, 11, 20, 0) 100%),
+    linear-gradient(180deg, rgba(8, 11, 20, 0.55) 0%, rgba(8, 11, 20, 0) 22%),
+    linear-gradient(0deg, rgba(8, 11, 20, 0.45) 0%, rgba(8, 11, 20, 0) 25%);
 }
 
 .grain {
   position: absolute;
   inset: -50%;
-  z-index: 4;
   pointer-events: none;
-  opacity: 0.07;
+  opacity: 0.06;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   animation: grain 1s steps(6) infinite;
 }
 
-.cursor-glow {
+/* Shared centred block for the intro and every room caption */
+.intro,
+.cap {
   position: absolute;
-  z-index: 4;
-  width: 520px; height: 520px;
-  left: 0; top: 0;
-  margin: -260px 0 0 -260px;
-  border-radius: 50%;
-  pointer-events: none;
-  background: radial-gradient(circle, rgba(255, 210, 140, 0.16), rgba(255, 210, 140, 0) 65%);
-  mix-blend-mode: screen;
-  transform: translate3d(var(--gx, 50vw), var(--gy, 50vh), 0);
-  opacity: 0;
-  transition: opacity 0.6s;
+  left: 50%;
+  top: 50%;
+  width: min(760px, calc(100% - 2 * var(--gutter)));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  text-shadow: 0 2px 24px rgba(8, 11, 20, 0.55);
 }
-.hero:hover .cursor-glow { opacity: 1; }
 
-/* ---------- Content ---------- */
-.hero-ui {
-  position: absolute;
-  inset: 0;
+/* ---------- Intro ---------- */
+.intro {
   z-index: 10;
-  pointer-events: none;
+  transform: translate(-50%, calc(-50% + (1 - var(--ui, 1)) * -40px));
   opacity: var(--ui, 1);
-  transform: translateY(calc((1 - var(--ui, 1)) * -40px));
   filter: blur(calc((1 - var(--ui, 1)) * 6px));
 }
-.hero-ui a, .hero-ui button { pointer-events: auto; }
-.hero.is-scrolled .cursor-glow { opacity: 0; }
-.hero.is-scrolled .hero-ui a { pointer-events: none; }
-.shade { opacity: var(--shade, 1); }
-
-.hero-content {
-  position: absolute;
-  z-index: 10;
-  left: var(--gutter);
-  bottom: clamp(96px, 14vh, 150px);
-  max-width: 600px;
-  pointer-events: none;
-}
-.hero-content a { pointer-events: auto; }
+.intro.is-gone { visibility: hidden; }
 
 .eyebrow {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  font-size: 0.72rem;
+  font-size: 0.74rem;
+  font-weight: 500;
   letter-spacing: 0.32em;
   text-transform: uppercase;
   color: var(--gold);
@@ -212,8 +173,8 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .title {
   font-family: "Cormorant Garamond", serif;
   font-weight: 400;
-  font-size: clamp(3.2rem, 9vw, 7.6rem);
-  line-height: 0.92;
+  font-size: clamp(3.4rem, 10vw, 8rem);
+  line-height: 0.9;
   letter-spacing: -0.01em;
   margin: 18px 0 22px;
 }
@@ -224,70 +185,50 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .title em { font-style: italic; color: var(--gold); }
 
 .lede {
-  max-width: 470px;
-  color: var(--muted);
-  font-size: 1rem;
+  max-width: 540px;
+  color: var(--soft);
+  font-size: 1.08rem;
   line-height: 1.7;
   opacity: 0;
   animation: rise 1.1s var(--ease-out) 1.2s forwards;
 }
 
-.actions {
+.actions,
+.cap-actions {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 14px;
-  margin-top: 32px;
-  opacity: 0;
-  animation: rise 1.1s var(--ease-out) 1.4s forwards;
+  margin-top: 30px;
 }
+.actions { opacity: 0; animation: rise 1.1s var(--ease-out) 1.4s forwards; }
 
 .stats {
   display: flex;
-  gap: clamp(20px, 3.4vw, 44px);
-  margin-top: 40px;
-  padding-top: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(20px, 4vw, 52px);
+  margin-top: 36px;
+  padding-top: 22px;
   border-top: 1px solid var(--line);
   opacity: 0;
   animation: rise 1.1s var(--ease-out) 1.6s forwards;
 }
 .stats dt { font-size: 0.66rem; letter-spacing: 0.24em; text-transform: uppercase; color: var(--muted); }
-.stats dd { font-family: "Cormorant Garamond", serif; font-size: 1.6rem; margin-top: 4px; }
+.stats dd { font-family: "Cormorant Garamond", serif; font-size: 1.7rem; margin-top: 4px; font-variant-numeric: tabular-nums; }
 
-/* ---------- View caption ---------- */
-.view-caption {
-  position: absolute;
-  z-index: 10;
-  right: var(--gutter);
-  top: 50%;
-  display: flex;
-  gap: 18px;
-  align-items: flex-start;
-  transform: translateY(-50%);
-  text-align: right;
-  flex-direction: row-reverse;
-  opacity: 0;
-  animation: fadeIn 1.2s var(--ease-out) 1.8s forwards;
-}
-.view-index {
-  font-family: "Cormorant Garamond", serif;
-  font-size: 3.2rem;
-  line-height: 1;
-  color: var(--gold);
-}
-.view-label { font-size: 0.75rem; letter-spacing: 0.28em; text-transform: uppercase; }
-.view-desc { color: var(--muted); font-size: 0.85rem; margin-top: 6px; max-width: 220px; }
-.view-caption.swap .view-index,
-.view-caption.swap .view-label,
-.view-caption.swap .view-desc { animation: captionSwap 1.2s ease-in-out; }
+.eyebrow, .lede, .actions, .stats { transform: translateY(18px); }
 
-/* ---------- Scroll cue ---------- */
 .scroll-cue {
   position: absolute;
-  right: var(--gutter);
-  bottom: clamp(40px, 7vh, 72px);
+  z-index: 10;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   font-size: 0.66rem;
   letter-spacing: 0.26em;
   text-transform: uppercase;
@@ -295,10 +236,13 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   opacity: 0;
   animation: fadeIn 1.2s var(--ease-out) 2s forwards;
 }
+/* Wrapper-free fade: the cue's own opacity is owned by its entrance animation,
+   so the scroll fade is applied to its children */
+.scroll-cue > * { opacity: var(--ui, 1); }
 .scroll-cue i {
   position: relative;
   width: 1px;
-  height: 46px;
+  height: 40px;
   overflow: hidden;
   background: var(--line);
 }
@@ -311,83 +255,64 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   animation: drip 2.2s var(--ease-cine) infinite;
 }
 
-/* ---------- Video tour ---------- */
-.tour {
-  position: absolute;
-  inset: 0;
-  z-index: 15;
-  background: var(--ink);
-  opacity: var(--tour, 0);
-  visibility: hidden;
-}
-.tour.is-visible { visibility: visible; }
+/* ---------- Room captions ----------
+   Each fades up, line by line, while the playhead is inside its room */
+.tour-captions { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
+.cap { transform: translate(-50%, -50%); visibility: hidden; transition: visibility 0s 0.8s; }
+.cap.is-on { visibility: visible; transition-delay: 0s; }
 
-.tour-video {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  background: var(--ink);
-}
-
-.tour-shade {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    linear-gradient(90deg, rgba(8, 11, 20, 0.7) 0%, rgba(8, 11, 20, 0.25) 32%, rgba(8, 11, 20, 0) 55%),
-    linear-gradient(270deg, rgba(8, 11, 20, 0.6) 0%, rgba(8, 11, 20, 0) 24%),
-    linear-gradient(0deg, rgba(8, 11, 20, 0.75) 0%, rgba(8, 11, 20, 0) 38%),
-    linear-gradient(180deg, rgba(8, 11, 20, 0.5) 0%, rgba(8, 11, 20, 0) 20%);
-}
-
-/* Room captions: each fades up while the playhead is inside its room */
-.tour-captions {
-  position: absolute;
-  left: var(--gutter);
-  right: var(--gutter);
-  bottom: clamp(64px, 12vh, 120px);
-  pointer-events: none;
-}
-.cap {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  max-width: 480px;
+.cap > * {
   opacity: 0;
-  transform: translateY(24px);
+  transform: translateY(26px);
   filter: blur(6px);
-  transition: opacity 0.7s var(--ease-out), transform 0.9s var(--ease-out), filter 0.7s var(--ease-out);
+  transition: opacity 0.6s var(--ease-out), transform 0.9s var(--ease-out), filter 0.6s var(--ease-out);
 }
-.cap.is-on { opacity: 1; transform: none; filter: none; }
+.cap.is-on > * { opacity: 1; transform: none; filter: none; }
+.cap.is-on > :nth-child(2) { transition-delay: 0.08s; }
+.cap.is-on > :nth-child(3) { transition-delay: 0.16s; }
+.cap.is-on > :nth-child(4) { transition-delay: 0.24s; }
 .cap.is-on .btn { pointer-events: auto; }
+
 .cap-kicker {
-  font-size: 0.7rem;
-  letter-spacing: 0.32em;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 0.76rem;
+  font-weight: 500;
+  letter-spacing: 0.34em;
   text-transform: uppercase;
   color: var(--gold);
 }
+.cap-kicker::before,
+.cap-kicker::after { content: ""; width: 34px; height: 1px; background: currentColor; opacity: 0.7; }
+
 .cap-title {
   font-family: "Cormorant Garamond", serif;
   font-weight: 400;
-  font-size: clamp(2.6rem, 6.4vw, 5.4rem);
+  font-size: clamp(3rem, 8vw, 6.6rem);
   line-height: 0.95;
-  margin: 12px 0 16px;
+  margin: 16px 0 18px;
   text-wrap: balance;
 }
-.cap-text { color: var(--muted); line-height: 1.7; max-width: 420px; }
-.cap .btn { margin-top: 26px; }
+.cap-text {
+  max-width: 520px;
+  color: var(--soft);
+  font-size: clamp(1rem, 1.4vw, 1.15rem);
+  line-height: 1.7;
+}
 
-/* Room list: shows where you are and jumps to a room */
+/* ---------- Room list: shows where you are and jumps to a room ---------- */
 .tour-rail {
   position: absolute;
+  z-index: 11;
   right: var(--gutter);
   top: 50%;
   transform: translateY(-50%);
   display: flex;
   flex-direction: column;
   gap: 4px;
+  opacity: var(--rail, 0);
+  transition: opacity 0.6s;
 }
 .rail-btn {
   display: flex;
@@ -414,11 +339,12 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .rail-btn.is-active::after { width: 42px; background: var(--gold); }
 .rail-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; }
 
-.tour-time { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: rgba(255, 255, 255, 0.08); }
+.tour-time { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; z-index: 11; background: rgba(255, 255, 255, 0.08); }
 .tour-time span { display: block; height: 100%; background: var(--gold); transform-origin: left; transform: scaleX(var(--t, 0)); }
 
 .tour-loading {
   position: absolute;
+  z-index: 11;
   right: var(--gutter);
   bottom: 22px;
   font-size: 0.68rem;
@@ -444,76 +370,41 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .brand-small { font-family: "Cormorant Garamond", serif; font-size: 1.1rem; letter-spacing: 0.3em; color: var(--paper); }
 .brand-small em { font-style: normal; color: var(--gold); font-size: 0.8rem; }
 
-/* ---------- Hint & progress ---------- */
-.hint {
-  position: absolute;
-  z-index: 10;
-  left: 50%;
-  bottom: 34px;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 0.68rem;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: var(--muted);
-  opacity: 0;
-  animation: fadeIn 1s var(--ease-out) 2.3s forwards;
-  transition: opacity 0.8s;
-  white-space: nowrap;
-}
-.hint.hidden { opacity: 0 !important; animation: none; }
-.mouse { width: 18px; height: 28px; border: 1px solid var(--muted); border-radius: 10px; position: relative; }
-.mouse span { position: absolute; left: 50%; top: 6px; width: 2px; height: 6px; margin-left: -1px; background: var(--gold); border-radius: 2px; animation: wheel 1.8s infinite; }
-
-.progress { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; z-index: 11; background: rgba(255, 255, 255, 0.06); }
-.progress span { display: block; height: 100%; width: 25%; background: var(--gold); transform: translateX(0); transition: transform 1.2s var(--ease-cine); }
-
 /* ---------- Keyframes ---------- */
 @keyframes rise { to { opacity: 1; transform: translateY(0); } }
 @keyframes fadeIn { to { opacity: 1; } }
 @keyframes lineUp { to { transform: translateY(0); } }
 @keyframes pulse { 70% { box-shadow: 0 0 0 10px rgba(227, 178, 106, 0); } 100% { box-shadow: 0 0 0 0 rgba(227, 178, 106, 0); } }
-@keyframes wheel { 0% { opacity: 0; transform: translateY(0); } 30% { opacity: 1; } 100% { opacity: 0; transform: translateY(8px); } }
 @keyframes drip { 0% { transform: translateY(-100%); } 100% { transform: translateY(200%); } }
-@keyframes captionSwap { from { opacity: 0; } to { opacity: 1; } }
 @keyframes grain {
   0% { transform: translate(0, 0); } 20% { transform: translate(-3%, 2%); } 40% { transform: translate(2%, -3%); }
   60% { transform: translate(-2%, -1%); } 80% { transform: translate(3%, 3%); } 100% { transform: translate(0, 0); }
 }
-.eyebrow, .lede, .actions, .stats { transform: translateY(18px); }
 
 /* ---------- Responsive ---------- */
+@media (max-width: 1180px) {
+  .tour-rail { display: none; }
+}
+
 @media (max-width: 960px) {
   .nav-links { display: none; }
-  .view-caption { top: 22%; bottom: auto; transform: none; }
-  .view-index { font-size: 2.4rem; }
 }
 
 @media (max-width: 640px) {
   .nav { padding-top: 18px; }
   .nav-cta { display: none; }
-  .hero { cursor: default; }
   .shade {
     background:
-      linear-gradient(0deg, rgba(8, 11, 20, 0.95) 0%, rgba(8, 11, 20, 0.6) 48%, rgba(8, 11, 20, 0.1) 75%),
-      linear-gradient(180deg, rgba(8, 11, 20, 0.6) 0%, rgba(8, 11, 20, 0) 22%);
+      radial-gradient(ellipse 120% 60% at 50% 55%, rgba(8, 11, 20, 0.7) 0%, rgba(8, 11, 20, 0.4) 60%, rgba(8, 11, 20, 0.15) 100%),
+      linear-gradient(180deg, rgba(8, 11, 20, 0.55) 0%, rgba(8, 11, 20, 0) 22%);
   }
-  .hero-content { right: var(--gutter); bottom: 56px; }
-  .lede { font-size: 0.92rem; }
-  .actions .btn { flex: 1 1 auto; padding: 13px 18px; }
-  .stats { gap: 16px; margin-top: 26px; flex-wrap: wrap; }
-  .stats dd { font-size: 1.25rem; }
-  .view-caption { display: none; }
-  .scroll-cue { left: 50%; right: auto; bottom: 18px; transform: translateX(-50%); }
+  .lede { font-size: 0.98rem; }
+  .actions .btn, .cap-actions .btn { flex: 1 1 auto; padding: 13px 18px; }
+  .stats { gap: 18px; margin-top: 26px; }
+  .stats dd { font-size: 1.3rem; }
   .scroll-cue span { display: none; }
-  .tour-rail { display: none; }
-  .tour-captions { bottom: 40px; }
-  .tour-shade { background: linear-gradient(0deg, rgba(8, 11, 20, 0.92) 0%, rgba(8, 11, 20, 0.5) 40%, rgba(8, 11, 20, 0) 65%); }
-  .tour-loading { left: var(--gutter); right: auto; top: 90px; bottom: auto; }
-  .hint { display: none; }
-  .cursor-glow { display: none; }
+  .cap-kicker::before, .cap-kicker::after { width: 20px; }
+  .tour-loading { left: 50%; right: auto; top: 90px; bottom: auto; transform: translateX(-50%); }
 }
 
 @media (max-height: 760px) and (min-width: 641px) {
@@ -521,7 +412,6 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .layer { transform: none; }
-  .grain, .dot, .mouse span, .scroll-cue i::after { animation: none; }
-  .stage { transform: none; }
+  .grain, .dot, .scroll-cue i::after { animation: none; }
+  .cap > * { transform: none; filter: none; }
 }
